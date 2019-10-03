@@ -28,16 +28,10 @@ bool Address::isValid(const std::string& string) {
         return false;
     }
     std::array<byte, payloadSize+1> check;
-//    std::copy(string.data()+1, string.data()+2, check.data());
     std::copy(decoded.data(), decoded.data()+payloadSize, check.data()+1);
     check[0] = 1;
     // compute checksum
-    auto hash = TW::Hash::blake2b(check.data(), check.data()+payloadSize+1, 4);
-    // last 4 bytes are checksum
-//    std::array<byte, checksumSize> checksum;
-//    std::copy(hash.data(), hash.data()+checksumSize, checksum.data());
-//    printf("%s", checksum);
-//    std::cout << "checksum";
+    auto hash = TW::Hash::blake2b(check.data(), check.data()+payloadSize+1, checksumSize);
     // compare checksum
     if (!std::equal(decoded.end() - checksumSize, decoded.end(), hash.begin())) {
         return false;
@@ -64,15 +58,30 @@ Address::Address(const PublicKey& publicKey) {
 }
 
 std::string Address::string() const {
-    auto hash = Hash::sha512_256(bytes);
-    const size_t dataSize = PublicKey::secp256k1Size + checksumSize;
-    std::array<byte, dataSize> data;
-    std::vector<char> encoded;
-    encoded.resize(64);
+    const char* BASE32_ALPHABET_RFC4648_LOWERCASE = "abcdefghijklmnopqrstuvwxyz23456789";
+    const size_t payloadSize = 20;
+//    auto hash = Hash::sha512_256(bytes);
+    auto hash = TW::Hash::blake2b(bytes.data(), bytes.data()+PublicKey::secp256k1Size, payloadSize);
+//    const size_t dataSize = PublicKey::secp256k1Size + checksumSize;
+//    std::array<byte, dataSize> data;
+//    std::vector<char> encoded;
+//    encoded.resize(32);
+    std::array<byte, encodedSize> encoded;
+//    char* encoded2 = (char*)malloc(33);
 
+    std::array<byte, payloadSize+1> check;
+    std::copy(hash.data(), hash.data()+payloadSize, check.data()+1);
+    check[0] = 1;
+    // compute checksum
+    auto hash2 = TW::Hash::blake2b(check.data(), check.data()+payloadSize+1, checksumSize);
     // base32_encode(publickey + checksum)
-    std::copy(bytes.begin(), bytes.end(), data.data());
-    std::copy(hash.end() - checksumSize, hash.end(), data.data() + PublicKey::secp256k1Size);
-    base32_encode(data.data(), dataSize, encoded.data(), encoded.size(), BASE32_ALPHABET_RFC4648);
+    //    std::copy(bytes.begin(), bytes.end(), data.data());
+    //    std::copy(hash.end() - checksumSize, hash.end(), data.data() + PublicKey::secp256k1Size);
+    //    base32_encode(hash.data(), payloadSize, encoded, encodedSize-2-7+1, BASE32_ALPHABET_RFC4648);
+    base32_encode(hash.data(), payloadSize, reinterpret_cast<char*>(encoded.data()+2), encodedSize-2-7+1, BASE32_ALPHABET_RFC4648_LOWERCASE);
+    base32_encode(hash2.data(), checksumSize, reinterpret_cast<char*>(encoded.data()+2+32), 7+1, BASE32_ALPHABET_RFC4648_LOWERCASE);
+    encoded[0] = 'f';
+    encoded[1] = '1';
+
     return std::string(encoded.begin(), encoded.begin() + encodedSize);
 }
