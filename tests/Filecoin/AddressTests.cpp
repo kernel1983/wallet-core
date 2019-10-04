@@ -40,6 +40,6 @@ TEST(FilecoinAddress, FromPublicKey) {
 }
 
 TEST(FilecoinAddress, FromString) {
-    auto address = Address("t15ihq5ibzwki2b4ep2f46avlkrqzhpqgtga7pdrq");
-    ASSERT_EQ(address.string(), "t15ihq5ibzwki2b4ep2f46avlkrqzhpqgtga7pdrq");
+    auto address = Address("f15ihq5ibzwki2b4ep2f46avlkrqzhpqgtga7pdrq");
+    ASSERT_EQ(address.string(), "f15ihq5ibzwki2b4ep2f46avlkrqzhpqgtga7pdrq");
 }

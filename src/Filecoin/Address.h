@@ -15,13 +15,15 @@ namespace TW::Filecoin {
 
 class Address {
   public:
-    /// Base32 encoded address string length.
+    const char* BASE32_ALPHABET_RFC4648_LOWERCASE = "abcdefghijklmnopqrstuvwxyz23456789";
+    /// 'f'/'t'+ protocol + base32 encoded address string length + checksum.
     static const size_t encodedSize = 41;
+    static const size_t payloadSize = 20;
 
-    /// Sha512/256 checksum size.
+    /// blake2b 4 bytes checksum size.
     static const size_t checksumSize = 4;
-    /// Address data consisting of public key.
 
+    /// Address data consisting of hashed public key.
     std::array<byte, PublicKey::secp256k1Size> bytes;
 
     /// Determines whether a string makes a valid address.
